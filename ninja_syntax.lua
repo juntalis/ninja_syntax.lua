@@ -8,11 +8,14 @@
 local io, bit = io, bit
 
 -- Cached globals
-local iseven
 local _s, _t = string, table
+local _len = function(o) return #o end
 local strmatch, strfind = _s.match, _s.find
-local tinsert, tconcat = _t.insert, _t.concat
-local strlen, substr, strrep, strformat = _s.len, _s.sub, _s.rep, _s.format
+local tinsert, tconcat, tlen = _t.insert, _t.concat, _t.maxn or _len
+local strlen, substr, strrep = _s.len or _len, _s.sub, _s.rep
+local unpack, pack = _G.unpack or _t.unpack, function(...)
+	return {...}
+end
 
 --- Module table
 local ninja = {}
@@ -20,6 +23,7 @@ local ninja = {}
 -- LuaJIT's minilua does not include the math module, while
 -- standard Lua does not include the bit module. As a result,
 -- we end up with a few different implementations of iseven.
+local iseven
 if bit and bit.band then
 	-- Use the bit module if available.
 	iseven = function(num)
@@ -117,6 +121,16 @@ do
 	--- Build File Writer
 	-- @section writer
 
+	-- Determine whether an object is a table.
+	local function istable(obj)
+		return type(obj) == 'table'
+	end
+	
+	-- Determine whether a table is keyed (versus indexed)
+	local function iskeyed(T)
+		return type(next(T)) == 'string'
+	end
+
 	-- Process a list with a callback, inserting the results into target
 	local function map(func, list, target)
 		target = target or list
@@ -133,9 +147,14 @@ do
 	end
 
 	-- Python-esque list.extend implementation
-	local function extend(list, other)
-		for _,item in ipairs(other) do
-			tinsert(list, item)
+	local function extend(list, ...)
+		list = list or {}
+		local others = pack(...)
+		for _,other in pairs(others) do
+			print(other)
+			for _,item in pairs(other) do
+				tinsert(list, item)
+			end
 		end
 		return list
 	end
@@ -254,7 +273,7 @@ do
 		local linewidth = self.width - 2
 		local idx = nextwrap(text, linewidth)
 		while idx > 1 do
-			self:_write('# ' .. text:sub(1, idx - 1)):newline()
+			self:_write('# ' .. substr(text, 1, idx - 1)):newline()
 			text = substr(text, idx + 1)
 			idx = nextwrap(text, linewidth)
 		end
@@ -316,7 +335,7 @@ do
 		-- Handle optional keyed parameters
 		if kwargs ~= nil then
 			-- Boolean parameters
-			for unused,key in ipairs(bool_kwargs) do
+			for _,key in ipairs(bool_kwargs) do
 				if kwargs[key] then
 					self:variable(key, '1', 1)
 					kwargs[key] = nil
@@ -324,7 +343,7 @@ do
 			end
 
 			-- Simple parameters
-			for unused,key in ipairs(simple_kwargs) do
+			for _,key in pairs(simple_kwargs) do
 				if kwargs[key] then
 					self:variable(key, kwargs[key], 1)
 				end
@@ -343,23 +362,30 @@ do
 	-- @tparam ?string|table implicit implicit dependencies
 	-- @tparam ?string|table order_only force build to occur after target(s)
 	-- @tparam[opt] table variables any shadowed variables for this particular build
+	-- @tparam[opt] table implicit_outputs no clue
 	-- @treturn Writer returns self
 	function Writer:build(outputs, rule, inputs, implicit, order_only,
-	                      variables)
+	                      variables, implicit_outputs)
 		outputs = ninja.as_list(outputs)
 		local out_outputs = map(ninja.escape_path, outputs, {})
 		local all_inputs = map(ninja.escape_path, ninja.as_list(inputs), { rule })
 
 		-- Handle implicit parameter
-		if implicit then
+		if implicit ~= nil then
 			tinsert(all_inputs, '|')
-			map(ninja.escape_path, ninja.as_list(implicit), all_inputs)
+			extend(all_inputs, ninja.as_list(implicit))
 		end
 
 		-- Handle order_only parameter
-		if order_only then
+		if order_only ~= nil then
 			tinsert(all_inputs, '||')
-			map(ninja.escape_path, ninja.as_list(order_only), all_inputs)
+			extend(all_inputs, ninja.as_list(order_only))
+		end
+
+		-- Handle implicit_outputs parameter
+		if implicit_outputs ~= nil then
+			tinsert(out_outputs, '|')
+			map(ninja.escape_path, ninja.as_list(implicit_outputs), out_outputs)
 		end
 
 		-- Write build line
@@ -367,10 +393,20 @@ do
 		                          join(all_inputs)))
 
 		-- Handle build-specific variables
-		if variables then
-			for key,value in pairs(variables) do
-				self:variable(key, value, 1)
+		if istable(variables) then
+			local key, value
+			if iskeyed(variables) then
+				for key,value in pairs(variables) do
+					self:variable(key, value, 1)
+				end
+			else
+				for _,kvpair in pairs(variables) do
+					key, value = unpack(kvpair)
+					self:variable(key, value, 1)
+				end
 			end
+		elseif variables ~= nil then
+			error('Type error: if specified, variables should be a table!')
 		end
 
 		-- chain it

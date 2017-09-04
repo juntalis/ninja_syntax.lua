@@ -27,26 +27,34 @@ do
 	end
 end
 
+--[[--
+-- Line Wrapping Tests
+--]]--
+
 -- Test ninja_syntax.Writer's line wrapping
-local wrap_test = TestCase('LineWordWrap'):setup(function(self, runner)
+TestCase('LineWordWrap'):setup(function(self, runner)
 	self.out = StringBuffer()
 	self.n = Writer(self.out, 8)
 	self.words = 'x ' .. LONGWORD .. ' y'
+
 end):def('single_long_word', function(self)
 	-- We shouldn't wrap a single long word.
 	local expected = LONGWORD .. '\n'
 	self.n:_line(LONGWORD)
 	assert(self.out:get(true) == expected)
+
 end):def('few_long_words', function(self)
 	-- We should wrap a line where the second word is overlong.
 	local expected = 'x' .. NL .. IND .. LONGWORD ..NL.. IND ..'y\n'
 	self.n:_line(self.words)
 	assert(self.out:get(true) == expected)
+
 end):def('comment_wrap', function(self)
 	-- Filenames shoud not be wrapped
 	local expected = '# Hello\n# /usr/local/build-tools/bin\n'
 	self.n:comment('Hello /usr/local/build-tools/bin')
 	assert(self.out:get(true) == expected)
+
 end):def('short_words_indented', function(self)
 	-- Test that indent is taking into acount when breaking subsequent lines.
 	-- The second line should not be '    to tree', as that's longer than the
@@ -54,6 +62,7 @@ end):def('short_words_indented', function(self)
 	local expected = 'line_one' .. NL .. IND .. 'to' .. NL .. IND .. 'tree\n'
 	self.n:_line('line_one to tree')
 	assert(self.out:get(true) == expected)
+
 end):def('few_long_words_indented', function(self)
 	-- Check wrapping in the presence of indenting.
 	local ind = '  ' .. IND
@@ -71,19 +80,75 @@ end):def('fit_many_words', function(self)
 ]]
 	self.n:_line(input, 1)
 	assert(self.out:get(true) == expected)
+end):def('leading_space', function(self)
+	self.n = Writer(self.out, 14) -- force wrapping
+	self.n:variable('foo', {'', '-bar', '-somethinglong'}, 0)
+	local expected = [[foo = -bar $
+    -somethinglong
+]]
+	assert(self.out:get(true) == expected)
+end):def('embedded_dollar_dollar', function(self)
+	self.n = Writer(self.out, 15) -- force wrapping
+	self.n:variable('foo', {'a$$b', '-somethinglong'}, 0)
+	local expected = [[foo = a$$b $
+    -somethinglong
+]]
+	assert(self.out:get(true) == expected)
+end):def('two_embedded_dollar_dollars', function(self)
+	self.n = Writer(self.out, 17) -- force wrapping
+	self.n:variable('foo', {'a$$b', '-somethinglong'}, 0)
+	local expected = [[foo = a$$b $
+    -somethinglong
+]]
+	assert(self.out:get(true) == expected)
+end):def('leading_dollar_dollar', function(self)
+	self.n = Writer(self.out, 14) -- force wrapping
+	self.n:variable('foo', {'$$b', '-somethinglong'}, 0)
+	local expected = [[foo = $$b $
+    -somethinglong
+]]
+	assert(self.out:get(true) == expected)
+end):def('trailing_dollar_dollar', function(self)
+	self.n = Writer(self.out, 14) -- force wrapping
+	self.n:variable('foo', {'a$$', '-somethinglong'}, 0)
+	local expected = [[foo = a$$ $
+    -somethinglong
+]]
+	assert(self.out:get(true) == expected)
 end)
 
--- Test ninja_syntax.Writer.build
+--[[--
+-- Build Tests
+--]]--
+
 TestCase('Build'):setup(function(self, runner)
 	self.out = StringBuffer()
 	self.n = Writer(self.out)
+
 end):def('variables_dict', function(self)
 	self.n:build('out', 'cc', 'in', nil, nil, {name='value'})
 	local expected = [[build out: cc in
   name = value
 ]]
 	assert(self.out:get(true) == expected)
+
+end):def('variables_list', function(self)
+	self.n:build('out', 'cc', 'in', nil, nil, {{'name','value'}})
+	local expected = [[build out: cc in
+  name = value
+]]
+	assert(self.out:get(true) == expected)
+
+end):def('implicit_outputs', function(self)
+	self.n:build('o', 'cc', 'i', nil, nil, nil, 'io')
+	local expected = [[build o | io: cc i
+]]
+	assert(self.out:get(true) == expected)
 end)
+
+--[[--
+-- Expansion Tests
+--]]--
 
 -- Test ninja_syntax.expand
 TestCase('Expand'):def('basic', function(self)
