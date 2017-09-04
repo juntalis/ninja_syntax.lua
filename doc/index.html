@@ -1,0 +1,826 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Reference</title>
+    <link rel="stylesheet" href="ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>Ninja Build Generator</h1>
+
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Utility_Functions">Utility Functions </a></li>
+<li><a href="#Writer_Options">Writer Options </a></li>
+<li><a href="#Build_File_Writer">Build File Writer </a></li>
+<li><a href="#Writer_Internals">Writer Internals </a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><strong>ninja_syntax</strong></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>ninja_syntax</code></h1>
+<p>Lua module for generating .ninja files.</p>
+<p>
+
+</p>
+    <h3>Info:</h3>
+    <ul>
+        <li><strong>Author</strong>: Charles Grunwald (Juntalis) <a href="&#x6d;&#97;&#x69;&#108;&#x74;&#111;&#x3a;c&#104;&#x40;&#114;&#x6c;&#101;&#x73;&#46;&#x72;o&#99;&#x6b;&#115;">&#x63;&#104;&#x40;&#114;&#x6c;&#101;&#x73;.&#114;&#x6f;&#99;&#x6b;&#115;</a></li>
+    </ul>
+
+
+<h2><a href="#Utility_Functions">Utility Functions </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#ninja.escape">ninja.escape (str)</a></td>
+	<td class="summary">String escaping.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#ninja.expand">ninja.expand (str[, vars={}[, locals={}]])</a></td>
+	<td class="summary">Expand Expand a string containing <code>vars</code> as Ninja would.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#ninja.as_list">ninja.as_list (input)</a></td>
+	<td class="summary">Converts <code>input</code> into a table of strings.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#ninja.escape_path">ninja.escape_path (word)</a></td>
+	<td class="summary">Expanded version of <a href="index.html#ninja.escape">ninja.escape</a>.</td>
+	</tr>
+</table>
+<h2><a href="#Writer_Options">Writer Options </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#ninja.DEFAULT_LINE_WIDTH">ninja.DEFAULT_LINE_WIDTH</a></td>
+	<td class="summary">Default line width.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#ninja.DEFAULT_BLANK_LINES">ninja.DEFAULT_BLANK_LINES</a></td>
+	<td class="summary">Default consecutive blank line count.</td>
+	</tr>
+</table>
+<h2><a href="#Build_File_Writer">Build File Writer </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Writer.new">Writer.new (output[, width=78[, blanklines=1]])</a></td>
+	<td class="summary">Writer constructor</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Writer:newline">Writer:newline ()</a></td>
+	<td class="summary">Outputs a newline.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Writer:comment">Writer:comment (text[, has_path=false])</a></td>
+	<td class="summary">Outputs a comment.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Writer:variable">Writer:variable (key, value[, indent=0])</a></td>
+	<td class="summary">Define a variable to its value
+ Blank/nil values are ignored.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Writer:pool">Writer:pool (name, depth)</a></td>
+	<td class="summary">Pool declaration
+ Pools allow you to allocate one or more rules or edges a finite number of
+ concurrent jobs which is more tightly restricted than the default
+ parallelism.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Writer:rule">Writer:rule (name, command[, kwargs={}])</a></td>
+	<td class="summary">Rule declaration
+ Possible kwargs keys include: description, deps, depfile, pool, rspfile,
+ rspfile_content, generator, and restat.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Writer:build">Writer:build (outputs, rule, inputs, implicit, order_only[, variables])</a></td>
+	<td class="summary">Build statement
+ Build statements declare a relationship between input and output files.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Writer:include">Writer:include (path[, raw=false])</a></td>
+	<td class="summary">Include statement
+ Used to include another .ninja file into the current scope.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Writer:subninja">Writer:subninja (path[, raw=false])</a></td>
+	<td class="summary">Subninja statement
+ Used to include another .ninja file, introducing a new scope.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Writer:default">Writer:default (targets)</a></td>
+	<td class="summary">Default target(s) statement.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Writer:close">Writer:close ()</a></td>
+	<td class="summary">Close the writer's output.</td>
+	</tr>
+</table>
+<h2><a href="#Writer_Internals">Writer Internals </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Writer:_isfile">Writer:_isfile (output)</a></td>
+	<td class="summary">Refactored to a separate method in order to patch during tests.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Writer:_write">Writer:_write (text[, lineblank=false])</a></td>
+	<td class="summary">Write 'text' to output with tracking for blank lines.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Writer:_line">Writer:_line (text[, indent=0])</a></td>
+	<td class="summary">Write 'text' word-wrapped at self.width characters.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Writer:_count_dollars_before_index">Writer:_count_dollars_before_index (str, index)</a></td>
+	<td class="summary">Counts the '$' characters preceding str[index].</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Utility_Functions"></a>Utility Functions </h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "ninja.escape"></a>
+    <strong>ninja.escape (str)</strong>
+    </dt>
+    <dd>
+    String escaping.
+ Escape a string such that it can be embedded into a Ninja file without
+ further interpretation.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">str</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         input string
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        The escaped string
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "ninja.expand"></a>
+    <strong>ninja.expand (str[, vars={}[, locals={}]])</strong>
+    </dt>
+    <dd>
+    Expand Expand a string containing <code>vars</code> as Ninja would.
+ Doesn't handle the full Ninja variable syntax, but it's enough to make
+ configure.lua's use of it work.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">str</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         String to expand.
+        </li>
+        <li><span class="parameter">vars</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+         "global" variables - searched if var is not found in locals
+         (<em>default</em> {})
+        </li>
+        <li><span class="parameter">locals</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+         "local" variables - first place searched for variables
+         (<em>default</em> {})
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        expanded string
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "ninja.as_list"></a>
+    <strong>ninja.as_list (input)</strong>
+    </dt>
+    <dd>
+    Converts <code>input</code> into a table of strings.
+ If input is a blank string or nil, an empty table will be returned. If input
+ is a single scalar value, it will be converted to a string and inserted into
+ a table. Used internally
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">input</span>
+         input value
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+        input converted to a table of strings
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "ninja.escape_path"></a>
+    <strong>ninja.escape_path (word)</strong>
+    </dt>
+    <dd>
+    Expanded version of <a href="index.html#ninja.escape">ninja.escape</a>.  Used internally for stuff.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">word</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         text to escape
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        escaped version of word
+    </ol>
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="index.html#ninja.escape">escape</a>
+    </ul>
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Writer_Options"></a>Writer Options </h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "ninja.DEFAULT_LINE_WIDTH"></a>
+    <strong>ninja.DEFAULT_LINE_WIDTH</strong>
+    </dt>
+    <dd>
+    Default line width.  (78)
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "ninja.DEFAULT_BLANK_LINES"></a>
+    <strong>ninja.DEFAULT_BLANK_LINES</strong>
+    </dt>
+    <dd>
+    Default consecutive blank line count.  (1)
+
+
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Build_File_Writer"></a>Build File Writer </h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "Writer.new"></a>
+    <strong>Writer.new (output[, width=78[, blanklines=1]])</strong>
+    </dt>
+    <dd>
+    Writer constructor
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">output</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a> or <span class="type">file</span></span>
+         filepath or file handle for output .ninja file
+        </li>
+        <li><span class="parameter">width</span>
+            <span class="types"><span class="type">int</span></span>
+         maximum line width for wrapping
+         (<em>default</em> 78)
+        </li>
+        <li><span class="parameter">blanklines</span>
+            <span class="types"><span class="type">int</span></span>
+         maximum consecutive blank lines
+         (<em>default</em> 1)
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Writer:newline"></a>
+    <strong>Writer:newline ()</strong>
+    </dt>
+    <dd>
+    Outputs a newline.
+ Blank lines are limited to the writer's blanklines field if said
+ field is non-zero.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">Writer</span></span>
+        returns self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Writer:comment"></a>
+    <strong>Writer:comment (text[, has_path=false])</strong>
+    </dt>
+    <dd>
+    Outputs a comment.
+ Comment text is automatically wrapped according to the writer's width.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">text</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         Comment text
+        </li>
+        <li><span class="parameter">has_path</span>
+            <span class="types"><span class="type">bool</span></span>
+         Unused - exists to maintain consistency.
+         (<em>default</em> false)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">Writer</span></span>
+        returns self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Writer:variable"></a>
+    <strong>Writer:variable (key, value[, indent=0])</strong>
+    </dt>
+    <dd>
+    Define a variable to its value
+ Blank/nil values are ignored.  (and filtered from collections)
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">key</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         variable name
+        </li>
+        <li><span class="parameter">value</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a>, <span class="type">number</span>, <span class="type">boolean</span> or <a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+         variable value
+        </li>
+        <li><span class="parameter">indent</span>
+            <span class="types"><span class="type">int</span></span>
+         indent level
+         (<em>default</em> 0)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">Writer</span></span>
+        returns self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Writer:pool"></a>
+    <strong>Writer:pool (name, depth)</strong>
+    </dt>
+    <dd>
+    Pool declaration
+ Pools allow you to allocate one or more rules or edges a finite number of
+ concurrent jobs which is more tightly restricted than the default
+ parallelism.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">name</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         pool name
+        </li>
+        <li><span class="parameter">depth</span>
+            <span class="types"><span class="type">int</span></span>
+         pool depth
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">Writer</span></span>
+        returns self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Writer:rule"></a>
+    <strong>Writer:rule (name, command[, kwargs={}])</strong>
+    </dt>
+    <dd>
+    Rule declaration
+ Possible kwargs keys include: description, deps, depfile, pool, rspfile,
+ rspfile_content, generator, and restat.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">name</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         rule name
+        </li>
+        <li><span class="parameter">command</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         rule command line
+        </li>
+        <li><span class="parameter">kwargs</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+         additional optional rule configuration
+         (<em>default</em> {})
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">Writer</span></span>
+        returns self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Writer:build"></a>
+    <strong>Writer:build (outputs, rule, inputs, implicit, order_only[, variables])</strong>
+    </dt>
+    <dd>
+    Build statement
+ Build statements declare a relationship between input and output files.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">outputs</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a> or <a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+         output file(s)/target(s)
+        </li>
+        <li><span class="parameter">rule</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         declared rule to use
+        </li>
+        <li><span class="parameter">inputs</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a> or <a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+         input file(s)/target(s)
+        </li>
+        <li><span class="parameter">implicit</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a> or <a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+         implicit dependencies
+        </li>
+        <li><span class="parameter">order_only</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a> or <a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+         force build to occur after target(s)
+        </li>
+        <li><span class="parameter">variables</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+         any shadowed variables for this particular build
+         (<em>optional</em>)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">Writer</span></span>
+        returns self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Writer:include"></a>
+    <strong>Writer:include (path[, raw=false])</strong>
+    </dt>
+    <dd>
+    Include statement
+ Used to include another .ninja file into the current scope.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">path</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         .ninja file to include in the current scope
+        </li>
+        <li><span class="parameter">raw</span>
+            <span class="types"><span class="type">bool</span></span>
+         controls whether to escape path or leave it raw
+         (<em>default</em> false)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">Writer</span></span>
+        returns self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Writer:subninja"></a>
+    <strong>Writer:subninja (path[, raw=false])</strong>
+    </dt>
+    <dd>
+    Subninja statement
+ Used to include another .ninja file, introducing a new scope.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">path</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         .ninja file to use for the new scope
+        </li>
+        <li><span class="parameter">raw</span>
+            <span class="types"><span class="type">bool</span></span>
+         controls whether to escape path or leave it raw
+         (<em>default</em> false)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">Writer</span></span>
+        returns self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Writer:default"></a>
+    <strong>Writer:default (targets)</strong>
+    </dt>
+    <dd>
+    Default target(s) statement.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">targets</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a> or <a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">{string,...}</a></span>
+         default build target(s)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">Writer</span></span>
+        returns self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Writer:close"></a>
+    <strong>Writer:close ()</strong>
+    </dt>
+    <dd>
+    Close the writer's output.
+
+
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Writer_Internals"></a>Writer Internals </h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "Writer:_isfile"></a>
+    <strong>Writer:_isfile (output)</strong>
+    </dt>
+    <dd>
+    Refactored to a separate method in order to patch during tests.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">output</span>
+         The object we're testing
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">boolean</span></span>
+
+
+
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Writer:_write"></a>
+    <strong>Writer:_write (text[, lineblank=false])</strong>
+    </dt>
+    <dd>
+    Write 'text' to output with tracking for blank lines.
+ Wasn't in the original ninja_syntax, but whatever.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">text</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         output text
+        </li>
+        <li><span class="parameter">lineblank</span>
+            <span class="types"><span class="type">bool</span></span>
+         Whether or not text is a blank line.
+         (<em>default</em> false)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">Writer</span></span>
+        returns self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Writer:_line"></a>
+    <strong>Writer:_line (text[, indent=0])</strong>
+    </dt>
+    <dd>
+    Write 'text' word-wrapped at self.width characters.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">text</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         Text to word-wrap
+        </li>
+        <li><span class="parameter">indent</span>
+            <span class="types"><span class="type">int</span></span>
+         Indent level
+         (<em>default</em> 0)
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">Writer</span></span>
+        returns self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Writer:_count_dollars_before_index"></a>
+    <strong>Writer:_count_dollars_before_index (str, index)</strong>
+    </dt>
+    <dd>
+    Counts the '$' characters preceding str[index].
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">str</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+         subject string
+        </li>
+        <li><span class="parameter">index</span>
+            <span class="types"><span class="type">int</span></span>
+         the target index
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><span class="type">int</span></span>
+        the count of '$' characters
+    </ol>
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2017-09-03 18:33:42 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

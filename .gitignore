@@ -1,0 +1,8 @@
+# Project Files
+ninja-syntax.iml
+/.idea
+
+# Local reference stuff
+/bak
+ninja_syntax.py
+ninja_syntax_test.py
