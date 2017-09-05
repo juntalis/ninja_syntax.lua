@@ -1,6 +1,6 @@
 # Ninja Build Generator
 
-[ninja_syntax.py](https://github.com/ninja-build/ninja/blob/master/misc/ninja_syntax.py) reimplemented in LUA.
+[ninja_syntax.py](https://github.com/ninja-build/ninja/blob/master/misc/ninja_syntax.py) reimplemented in Lua.
 
 Rewording the description from the original script: 
 
