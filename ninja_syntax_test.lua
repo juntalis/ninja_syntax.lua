@@ -1,6 +1,6 @@
 ------------
 -- Unit tests for the [ninja_syntax.lua](ninja_syntax.lua). Line by line
--- translation of ninja_syntax_test.py to LUA.
+-- translation of ninja_syntax_test.py to Lua.
 -- @module ninja_syntax_test
 -- @author Charles Grunwald (Juntalis) <ch@rles.rocks>
 ----
