@@ -201,6 +201,12 @@ do
 		end
 	end
 	
+	-- Verifies whether or not a table has implemented methods
+	-- similar to the lua file object
+	local function isfileimpl(obj)
+		return obj.write ~= nil and obj.flush ~= nil and obj.close ~= nil
+	end
+	
 	--- Writer Implementation
 	local Writer = {}
 	setmetatable(Writer, {
@@ -453,7 +459,8 @@ do
 	-- @param output The object we're testing 
 	-- @treturn boolean
 	function Writer:_isfile(output)
-		return type(output) == 'userdata' and io.type(output) == 'file'
+		return (type(output) == 'userdata' and io.type(output) == 'file') or
+		       (type(output) == 'table' and isfileimpl(output))
 	end
 
 	--- Write 'text' to output with tracking for blank lines.

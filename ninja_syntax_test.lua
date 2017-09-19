@@ -18,14 +18,8 @@ local IND = '    ' -- indent
 local LONGWORD = rep('a', 10)
 local LONGWORDWITHSPACES = rep('a', 5) .. '$ ' .. rep('a', 5)
 
--- Patch ninja_syntax.Writer._isfile to return true for a StringBuffer 
+-- Cached local reference
 local Writer = ninja.Writer
-do
-	local orig_isfile = Writer._isfile
-	Writer._isfile = function(self, obj)
-		return orig_isfile(obj) or minitest.isklass(obj, StringBuffer)
-	end
-end
 
 --[[--
 -- Line Wrapping Tests
