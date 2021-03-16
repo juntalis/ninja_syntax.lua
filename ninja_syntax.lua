@@ -271,11 +271,8 @@ do
 	--- Outputs a comment.
 	-- Comment text is automatically wrapped according to the writer's width.
 	-- @string text Comment text
-	-- @bool[opt=false] has_path Unused - exists to maintain consistency.
 	-- @treturn Writer returns self
-	function Writer:comment(text, has_path)
-		-- has_path doesn't appear to be used
-		-- has_path = has_path or false
+	function Writer:comment(text)
 		local linewidth = self.width - 2
 		local idx = nextwrap(text, linewidth)
 		while idx > 1 do
@@ -371,7 +368,7 @@ do
 	-- @tparam[opt] table implicit_outputs no clue
 	-- @treturn Writer returns self
 	function Writer:build(outputs, rule, inputs, implicit, order_only,
-	                      variables, implicit_outputs)
+	                      variables, implicit_outputs, pool, dyndep)
 		outputs = ninja.as_list(outputs)
 		local out_outputs = map(ninja.escape_path, outputs, {})
 		local all_inputs = map(ninja.escape_path, ninja.as_list(inputs), { rule })
@@ -397,6 +394,14 @@ do
 		-- Write build line
 		self:_line(string.format('build %s: %s', join(out_outputs),
 		                          join(all_inputs)))
+		
+		if pool ~= nil then
+			self:_line(string.format('  pool = %s', pool))
+		end
+		
+		if dyndep ~= nil then
+			self:_line(string.format('  dyndep = %s', dyndep))
+		end
 
 		-- Handle build-specific variables
 		if istable(variables) then
