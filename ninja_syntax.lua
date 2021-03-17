@@ -366,6 +366,8 @@ do
 	-- @tparam ?string|table order_only force build to occur after target(s)
 	-- @tparam[opt] table variables any shadowed variables for this particular build
 	-- @tparam[opt] table implicit_outputs no clue
+	-- @tparam[opt] table pool assign a pool to this build statement
+	-- @tparam[opt] table dyndep specify a dynamic dependency for this build statement
 	-- @treturn Writer returns self
 	function Writer:build(outputs, rule, inputs, implicit, order_only,
 	                      variables, implicit_outputs, pool, dyndep)
